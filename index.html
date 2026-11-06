@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PG Manager – 3D Dashboard</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: white;
+}
+
+header {
+    padding: 18px 24px;
+    background: #172235;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #29364a;
+}
+
+header h2 { margin: 0; }
+
+header span {
+    color: #9caec5;
+    font-size: 13px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 1fr 330px;
+    min-height: calc(100vh - 65px);
+}
+
+.viewer {
+    position: relative;
+    min-height: 650px;
+    background: radial-gradient(circle, #263c58, #101827 75%);
+}
+
+#building {
+    width: 100%;
+    height: 100%;
+    min-height: 650px;
+}
+
+.controls {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+button, select {
+    padding: 10px 14px;
+    background: #26364d;
+    color: white;
+    border: 1px solid #42536b;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+button:hover, select:hover {
+    background: #3a506e;
+}
+
+.sidebar {
+    padding: 22px;
+    background: #172235;
+    border-left: 1px solid #29364a;
+}
+
+.sidebar h3 { margin-top: 0; }
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.stat {
+    padding: 15px;
+    background: #223149;
+    border-radius: 9px;
+}
+
+.stat small {
+    color: #a7b6ca;
+}
+
+.stat h2 {
+    margin: 8px 0 0;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #c4cfdd;
+    margin: 15px 0 25px;
+}
+
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.details {
+    background: #223149;
+    padding: 18px;
+    border-radius: 10px;
+    min-height: 250px;
+}
+
+.details h3 {
+    margin-top: 0;
+    color: #65b9ff;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #3a4960;
+    font-size: 13px;
+}
+
+.detail-row span:first-child {
+    color: #aabbd0;
+}
+
+.status {
+    font-weight: bold;
+}
+
+.paid { color: #42d392; }
+.pending { color: #ff6666; }
+.vacant { color: #aab4c2; }
+.partial { color: #ffc857; }
+
+#hint {
+    color: #aabbd0;
+    font-size: 13px;
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) 330px;
+}
+
+.viewer {
+    min-width: 0;
+    height: 750px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#building {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.sidebar {
+    min-width: 0;
+    overflow-y: auto;
+}
+
+button, select {
+    min-height: 42px;
+    touch-action: manipulation;
+}
+
+/* Tablets */
+
+@media (max-width: 1000px) {
+
+    .container {
+        grid-template-columns: 1fr;
+    }
+
+    .viewer {
+        height: 600px;
+    }
+
+    .sidebar {
+        border-left: none;
+        border-top: 1px solid #29364a;
+    }
+
+}
+
+/* Mobile phones */
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 14px;
+    }
+
+    header h2 {
+        font-size: 19px;
+    }
+
+    header span {
+        font-size: 11px;
+    }
+
+    .viewer {
+        height: 55vh;
+        min-height: 360px;
+        max-height: 520px;
+    }
+
+    .controls {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        gap: 6px;
+    }
+
+    button, select {
+        padding: 9px 10px;
+        font-size: 12px;
+    }
+
+    .sidebar {
+        padding: 16px;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stat {
+        padding: 12px;
+    }
+
+    .stat h2 {
+        font-size: 22px;
+    }
+
+    .details {
+        padding: 14px;
+    }
+
+    .detail-row {
+        font-size: 12px;
+    }
+
+}
+
+/* Very small phones */
+
+@media (max-width: 380px) {
+
+    header h2 {
+        font-size: 16px;
+    }
+
+    .viewer {
+        height: 380px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h2>🏢 PG Manager</h2>
+        <span>3D Property Management Dashboard</span>
+    </div>
+    <span>OWNER DASHBOARD</span>
+</header>
+
+<div class="container">
+
+    <section class="viewer">
+
+        <div class="controls">
+            <select id="floorSelect">
+                <option value="all">All Floors</option>
+                <option value="3">Floor 3</option>
+                <option value="2">Floor 2</option>
+                <option value="1">Floor 1</option>
+                <option value="0">Ground Floor</option>
+            </select>
+
+            <button id="resetBtn">Reset View</button>
+        </div>
+
+        <div id="building"></div>
+
+    </section>
+
+    <aside class="sidebar">
+
+        <h3>Property Overview</h3>
+
+        <div class="stats">
+            <div class="stat">
+                <small>Total Rooms</small>
+                <h2 id="totalRooms">12</h2>
+            </div>
+
+            <div class="stat">
+                <small>Occupied</small>
+                <h2 id="occupiedRooms">9</h2>
+            </div>
+
+            <div class="stat">
+                <small>Vacant</small>
+                <h2 id="vacantRooms">3</h2>
+            </div>
+
+            <div class="stat">
+                <small>Rent Pending</small>
+                <h2 id="pendingRooms">3</h2>
+            </div>
+        </div>
+
+        <h3>Room Status</h3>
+
+        <div class="legend">
+            <span><i class="dot" style="background:#28c78b"></i>Paid</span>
+            <span><i class="dot" style="background:#ff5252"></i>Pending</span>
+            <span><i class="dot" style="background:#aab4c2"></i>Vacant</span>
+            <span><i class="dot" style="background:#ffc857"></i>Partial</span>
+        </div>
+
+        <h3>Room Information</h3>
+
+        <div class="details" id="details">
+            <h3>Select a Room</h3>
+            <p>Click any room in the 3D building to view its information.</p>
+        </div>
+
+        <p id="hint">
+            Drag to rotate the building. Scroll to zoom.
+            Click a room to view its details.
+        </p>
+
+    </aside>
+</div>
+
+<script type="module">
+import * as THREE from
+'https://esm.sh/three@0.160.0';
+
+import { OrbitControls } from
+'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+const container = document.getElementById("building");
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#17263a");
+
+const camera = new THREE.PerspectiveCamera(
+    50,
+    container.clientWidth / container.clientHeight,
+    0.1,
+    1000
+);
+
+camera.position.set(12, 9, 16);
+camera.lookAt(0, 3, 0);
+
+camera.position.set(13, 11, 17);
+
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: false
+});
+
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.target.set(0, 3, 0);
+
+
+
+const controls = new OrbitControls(
+    camera,
+    renderer.domElement
+);
+
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+
+controls.enableZoom = true;
+controls.enableRotate = true;
+controls.enablePan = true;
+
+controls.minDistance = 7;
+controls.maxDistance = 35;
+
+controls.maxPolarAngle = Math.PI / 2;
+
+controls.target.set(0, 3, 0);
+controls.update();
+
+renderer.domElement.style.touchAction = "none";
+
+
+
+scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+
+const light = new THREE.DirectionalLight(0xffffff, 2);
+light.position.set(10, 15, 10);
+scene.add(light);
+
+
+const testCube = new THREE.Mesh(
+    new THREE.BoxGeometry(3, 3, 3),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+
+testCube.position.set(0, 3, 0);
+scene.add(testCube);
+
+console.log("Three.js scene loaded successfully");
+
+
+// Floor and ground
+
+const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(40, 40),
+    new THREE.MeshStandardMaterial({ color: "#26364b" })
+);
+
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.15;
+scene.add(ground);
+
+// Demo room data
+
+const rooms = [
+    { id:"G01", floor:0, student:"Arun Kumar", phone:"9876543210", rent:6000, paid:6000, due:"Paid", presence:"Checked in" },
+    { id:"G02", floor:0, student:"Priya S", phone:"9876543211", rent:6000, paid:3000, due:"Partial", presence:"Not checked in" },
+    { id:"G03", floor:0, student:null },
+
+    { id:"101", floor:1, student:"Rahul M", phone:"9876543212", rent:6500, paid:6500, due:"Paid", presence:"Checked in" },
+    { id:"102", floor:1, student:"Karthik R", phone:"9876543213", rent:6500, paid:0, due:"Pending", presence:"Not checked in" },
+    { id:"103", floor:1, student:"Divya P", phone:"9876543214", rent:6500, paid:6500, due:"Paid", presence:"Checked in" },
+
+    { id:"201", floor:2, student:"Vijay S", phone:"9876543215", rent:7000, paid:0, due:"Pending", presence:"Checked in" },
+    { id:"202", floor:2, student:null },
+    { id:"203", floor:2, student:"Sanjay K", phone:"9876543216", rent:7000, paid:7000, due:"Paid", presence:"Not checked in" },
+
+    { id:"301", floor:3, student:"Manoj T", phone:"9876543217", rent:7000, paid:7000, due:"Paid", presence:"Checked in" },
+    { id:"302", floor:3, student:"Anitha V", phone:"9876543218", rent:7000, paid:0, due:"Pending", presence:"Not checked in" },
+    { id:"303", floor:3, student:null }
+];
+
+function roomColor(room) {
+    if (!room.student) return "#aab4c2";
+    if (room.due === "Paid") return "#28c78b";
+    if (room.due === "Partial") return "#ffc857";
+    return "#ff5252";
+}
+
+// Building group
+
+// const building = new THREE.Group();
+// scene.add(building);
+
+// const roomMeshes = [];
+
+// const roomWidth = 2.2;
+// const roomHeight = 1.45;
+// const roomDepth = 2.2;
+
+// rooms.forEach((room, index) => {
+
+//     const positionInFloor = index % 3;
+
+//     const x = (positionInFloor - 1) * 2.5;
+//     const y = room.floor * 1.8 + 0.8;
+//     const z = 0;
+
+//     // Room block
+
+//     const geometry = new THREE.BoxGeometry(
+//         roomWidth,
+//         roomHeight,
+//         roomDepth
+//     );
+
+//     const material = new THREE.MeshStandardMaterial({
+//         color: roomColor(room),
+//         roughness: 0.5
+//     });
+
+//     const mesh = new THREE.Mesh(geometry, material);
+
+//     mesh.position.set(x, y, z);
+
+//     mesh.userData.room = room;
+
+//     building.add(mesh);
+//     roomMeshes.push(mesh);
+
+//     // Room label
+
+//     const canvas = document.createElement("canvas");
+//     canvas.width = 256;
+//     canvas.height = 128;
+
+//     const ctx = canvas.getContext("2d");
+
+//     ctx.fillStyle = "#ffffff";
+//     ctx.font = "bold 52px Arial";
+//     ctx.textAlign = "center";
+//     ctx.fillText(room.id, 128, 75);
+
+//     const texture = new THREE.CanvasTexture(canvas);
+
+//     const label = new THREE.Sprite(
+//         new THREE.SpriteMaterial({
+//             map: texture,
+//             transparent: true
+//         })
+//     );
+
+//     label.position.set(x, y + 0.15, 1.13);
+//     label.scale.set(1.1, 0.55, 1);
+
+//     building.add(label);
+
+// });
+
+// // Floor separator lines
+
+// for (let i = 0; i < 4; i++) {
+
+//     const line = new THREE.Mesh(
+//         new THREE.BoxGeometry(8.5, 0.08, 3.2),
+//         new THREE.MeshStandardMaterial({ color: "#60758d" })
+//     );
+
+//     line.position.set(0, i * 1.8, 0);
+//     building.add(line);
+
+// }
+
+// // Add floor labels
+
+// for (let i = 0; i < 4; i++) {
+
+//     const canvas = document.createElement("canvas");
+//     canvas.width = 256;
+//     canvas.height = 100;
+
+//     const ctx = canvas.getContext("2d");
+
+//     ctx.fillStyle = "#ffffff";
+//     ctx.font = "bold 35px Arial";
+//     ctx.fillText(
+//         i === 0 ? "GROUND FLOOR" : "FLOOR " + i,
+//         10,
+//         60
+//     );
+
+//     const sprite = new THREE.Sprite(
+//         new THREE.SpriteMaterial({
+//             map: new THREE.CanvasTexture(canvas),
+//             transparent: true
+//         })
+//     );
+
+//     sprite.position.set(-5, i * 1.8 + 0.8, 0);
+//     sprite.scale.set(2.2, 0.8, 1);
+
+//     building.add(sprite);
+// }
+
+
+
+// =====================================
+// REALISTIC PG BUILDING DESIGN
+// =====================================
+
+const building = new THREE.Group();
+scene.add(building);
+
+const roomMeshes = [];
+
+const materials = {
+    wall: new THREE.MeshStandardMaterial({
+        color: "#e5d8c4",
+        roughness: 0.9
+    }),
+
+    concrete: new THREE.MeshStandardMaterial({
+        color: "#858b91",
+        roughness: 0.9
+    }),
+
+    glass: new THREE.MeshPhysicalMaterial({
+        color: "#76b9d8",
+        metalness: 0.35,
+        roughness: 0.15,
+        transparent: true,
+        opacity: 0.85
+    }),
+
+    dark: new THREE.MeshStandardMaterial({
+        color: "#303b49"
+    }),
+
+    balcony: new THREE.MeshStandardMaterial({
+        color: "#d3d7dc",
+        metalness: 0.65,
+        roughness: 0.3
+    }),
+
+    roof: new THREE.MeshStandardMaterial({
+        color: "#555d68",
+        roughness: 0.9
+    })
+};
+
+// Helper to create building parts
+
+function addBox(parent, width, height, depth, x, y, z, material) {
+
+    const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, depth),
+        material
+    );
+
+    mesh.position.set(x, y, z);
+
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    parent.add(mesh);
+
+    return mesh;
+}
+
+// Main building structure
+
+addBox(
+    building,
+    8.2, 7.3, 3.5,
+    0, 3.4, 0,
+    materials.wall
+);
+
+// Floor slabs
+
+for (let i = 0; i <= 4; i++) {
+
+    addBox(
+        building,
+        8.7, 0.16, 3.9,
+        0, i * 1.8, 0,
+        materials.concrete
+    );
+
+}
+
+// Support pillars
+
+for (let x of [-4.05, 4.05]) {
+
+    for (let z of [-1.65, 1.65]) {
+
+        addBox(
+            building,
+            0.22, 7.2, 0.22,
+            x, 3.5, z,
+            materials.concrete
+        );
+
+    }
+
+}
+
+// Room dimensions
+
+const roomWidth = 2.2;
+const roomHeight = 1.45;
+const roomDepth = 0.20;
+
+// Create rooms
+
+rooms.forEach((room, index) => {
+
+    const positionInFloor = index % 3;
+
+    const x = (positionInFloor - 1) * 2.5;
+    const y = room.floor * 1.8 + 0.8;
+    const z = 1.82;
+
+    // Room status panel
+
+    const roomMaterial = new THREE.MeshStandardMaterial({
+        color: roomColor(room),
+        transparent: true,
+        opacity: 0.55,
+        roughness: 0.5,
+        metalness: 0.1
+    });
+
+    const roomMesh = addBox(
+        building,
+        roomWidth,
+        roomHeight,
+        roomDepth,
+        x,
+        y,
+        z,
+        roomMaterial
+    );
+
+    roomMesh.userData.room = room;
+    roomMeshes.push(roomMesh);
+
+    // Room door
+
+    addBox(
+        building,
+        0.65, 1.05, 0.08,
+        x - 0.48,
+        y - 0.18,
+        z + 0.15,
+        materials.dark
+    );
+
+    // Door handle
+
+    const handle = new THREE.Mesh(
+        new THREE.SphereGeometry(0.045, 12, 12),
+        new THREE.MeshStandardMaterial({
+            color: "#f4c46a",
+            metalness: 0.8
+        })
+    );
+
+    handle.position.set(
+        x - 0.23,
+        y - 0.18,
+        z + 0.21
+    );
+
+    building.add(handle);
+
+    // Window frame
+
+    addBox(
+        building,
+        0.95, 0.72, 0.09,
+        x + 0.55,
+        y + 0.22,
+        z + 0.16,
+        materials.dark
+    );
+
+    // Glass window
+
+    addBox(
+        building,
+        0.82, 0.59, 0.04,
+        x + 0.55,
+        y + 0.22,
+        z + 0.22,
+        materials.glass
+    );
+
+    // Window divider
+
+    addBox(
+        building,
+        0.035, 0.6, 0.04,
+        x + 0.55,
+        y + 0.22,
+        z + 0.25,
+        materials.balcony
+    );
+
+    // Room number label
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = 256;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 55px Arial";
+    ctx.textAlign = "center";
+
+    ctx.fillText(room.id, 128, 80);
+
+    const label = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(canvas),
+            transparent: true
+        })
+    );
+
+    label.position.set(x, y + 0.9, z + 0.3);
+    label.scale.set(1.1, 0.55, 1);
+
+    building.add(label);
+
+});
+
+// Balconies
+
+for (let floor = 0; floor < 4; floor++) {
+
+    const y = floor * 1.8 + 0.15;
+
+    // Balcony platform
+
+    addBox(
+        building,
+        8.5, 0.12, 0.85,
+        0, y, 2.05,
+        materials.concrete
+    );
+
+    // Balcony railing
+
+    addBox(
+        building,
+        8.5, 0.07, 0.07,
+        0, y + 0.75, 2.45,
+        materials.balcony
+    );
+
+    for (let x = -4; x <= 4; x += 0.45) {
+
+        addBox(
+            building,
+            0.045, 0.75, 0.045,
+            x, y + 0.37, 2.45,
+            materials.balcony
+        );
+
+    }
+
+}
+
+// Rooftop
+
+addBox(
+    building,
+    9, 0.3, 4.2,
+    0, 7.35, 0,
+    materials.roof
+);
+
+// Rooftop water tank
+
+addBox(
+    building,
+    1.2, 1.3, 1.2,
+    2.7, 8.1, -0.7,
+    materials.dark
+);
+
+// Building entrance
+
+addBox(
+    building,
+    1.6, 0.2, 0.5,
+    0, 0.15, 2.5,
+    materials.concrete
+);
+
+// Entrance pillars
+
+for (let x of [-1, 1]) {
+
+    addBox(
+        building,
+        0.18, 2, 0.18,
+        x, 1, 2.7,
+        materials.concrete
+    );
+
+}
+
+// Entrance roof
+
+addBox(
+    building,
+    2.3, 0.18, 0.9,
+    0, 2.05, 2.7,
+    materials.roof
+);
+
+// Garden
+
+const grass = new THREE.Mesh(
+    new THREE.BoxGeometry(12, 0.12, 8),
+    new THREE.MeshStandardMaterial({
+        color: "#456d4a"
+    })
+);
+
+grass.position.set(0, -0.25, 1);
+building.add(grass);
+
+// Small decorative trees
+
+for (let x of [-5, 5]) {
+
+    const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.16, 1, 8),
+        new THREE.MeshStandardMaterial({
+            color: "#765033"
+        })
+    );
+
+    trunk.position.set(x, 0.35, 3);
+    building.add(trunk);
+
+    const leaves = new THREE.Mesh(
+        new THREE.SphereGeometry(0.65, 12, 12),
+        new THREE.MeshStandardMaterial({
+            color: "#367c48"
+        })
+    );
+
+    leaves.position.set(x, 1.1, 3);
+    building.add(leaves);
+
+}
+
+// Floor labels
+
+for (let i = 0; i < 4; i++) {
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = 256;
+    canvas.height = 100;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 35px Arial";
+
+    ctx.fillText(
+        i === 0 ? "GROUND FLOOR" : "FLOOR " + i,
+        10,
+        60
+    );
+
+    const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(canvas),
+            transparent: true
+        })
+    );
+
+    sprite.position.set(-5.1, i * 1.8 + 0.8, 0);
+    sprite.scale.set(2.2, 0.8, 1);
+
+    building.add(sprite);
+
+}
+
+
+
+// Room selection
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+let selectedRoom = null;
+
+renderer.domElement.addEventListener("click", event => {
+
+    const rect = renderer.domElement.getBoundingClientRect();
+
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const hits = raycaster.intersectObjects(roomMeshes);
+
+    if (hits.length > 0) {
+
+        const mesh = hits[0].object;
+
+        selectedRoom = mesh;
+
+        roomMeshes.forEach(item => {
+            item.material.emissive.set("#000000");
+        });
+
+        mesh.material.emissive.set("#ffffff");
+        mesh.material.emissiveIntensity = 0.25;
+
+        showRoomDetails(mesh.userData.room);
+    }
+
+});
+
+// Show room details
+
+function showRoomDetails(room) {
+
+    const panel = document.getElementById("details");
+
+    if (!room.student) {
+
+        panel.innerHTML = `
+            <h3>Room ${room.id}</h3>
+            <div class="detail-row">
+                <span>Room Status</span>
+                <strong class="vacant">Vacant</strong>
+            </div>
+            <p>This room is available for a new student.</p>
+            <button onclick="alert('Connect this button to your student admission form.')">
+                Add Student
+            </button>
+        `;
+
+        return;
+    }
+
+    const balance = room.rent - room.paid;
+
+    const statusClass =
+        room.due === "Paid" ? "paid" :
+        room.due === "Partial" ? "partial" : "pending";
+
+    panel.innerHTML = `
+        <h3>Room ${room.id}</h3>
+
+        <div class="detail-row">
+            <span>Student</span>
+            <strong>${room.student}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Phone</span>
+            <strong>${room.phone}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Monthly Rent</span>
+            <strong>₹${room.rent}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Paid</span>
+            <strong>₹${room.paid}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Outstanding</span>
+            <strong>₹${balance}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Rent Status</span>
+            <strong class="status ${statusClass}">
+                ${room.due}
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Presence</span>
+            <strong>${room.presence}</strong>
+        </div>
+
+        <br>
+
+        <button onclick="alert('Connect this button to your payment recording system.')">
+            Record Payment
+        </button>
+    `;
+}
+
+// Floor filtering
+
+document.getElementById("floorSelect").addEventListener("change", event => {
+
+    const value = event.target.value;
+
+    roomMeshes.forEach(mesh => {
+
+        const room = mesh.userData.room;
+
+        mesh.visible =
+            value === "all" || room.floor === Number(value);
+
+    });
+
+    building.children.forEach(child => {
+
+        if (child.userData.room) return;
+
+        child.visible = true;
+
+    });
+
+    selectedRoom = null;
+
+    document.getElementById("details").innerHTML = `
+        <h3>Select a Room</h3>
+        <p>Choose a room in the building to see its information.</p>
+    `;
+
+});
+
+// Reset camera
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+
+    
+    camera.position.set(13, 11, 17);
+ controls.target.set(0, 3, 0);
+controls.update();
+    //   controls.target.set(0, 3, 0);
+   // controls.update();
+
+    document.getElementById("floorSelect").value = "all";
+
+    roomMeshes.forEach(mesh => mesh.visible = true);
+
+});
+
+// Dashboard numbers
+
+document.getElementById("totalRooms").textContent = rooms.length;
+
+document.getElementById("occupiedRooms").textContent =
+    rooms.filter(r => r.student).length;
+
+document.getElementById("vacantRooms").textContent =
+    rooms.filter(r => !r.student).length;
+
+document.getElementById("pendingRooms").textContent =
+    rooms.filter(r => r.student && r.due !== "Paid").length;
+
+// Responsive rendering
+
+
+function resizeBuilding() {
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    if (!width || !height) return;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width, height);
+
+    renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
+    );
+}
+
+window.addEventListener("resize", resizeBuilding);
+
+new ResizeObserver(resizeBuilding).observe(container);
+
+resizeBuilding();
+
+// window.addEventListener("resize", () => {
+
+//     const width = container.clientWidth;
+//     const height = container.clientHeight;
+
+//     camera.aspect = width / height;
+//     camera.updateProjectionMatrix();
+
+//     renderer.setSize(width, height);
+
+// });
+
+// Animation
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    controls.update();
+
+    renderer.render(scene, camera);
+
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
